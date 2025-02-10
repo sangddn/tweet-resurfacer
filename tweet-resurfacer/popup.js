@@ -1,4 +1,3 @@
-// Move displaySavedTweets function outside the event listener
 function displaySavedTweets() {
     chrome.storage.local.get({ savedTweets: {} }, function (result) {
         console.log('Retrieved saved tweets:', result.savedTweets)
@@ -61,7 +60,6 @@ function displaySavedTweets() {
             </div>
         `).join('')
 
-        // Add event listeners to tweets and remove buttons
         document.querySelectorAll('.saved-tweet').forEach(tweetDiv => {
             tweetDiv.addEventListener('click', function (e) {
                 const tweetUrl = this.getAttribute('data-tweet-url')
@@ -77,7 +75,6 @@ function displaySavedTweets() {
             })
         })
 
-        // Add event listeners for new review buttons
         document.querySelectorAll('.review-today-btn').forEach(btn => {
             btn.addEventListener('click', function (e) {
                 e.stopPropagation()
@@ -98,7 +95,6 @@ function displaySavedTweets() {
 
 window.addEventListener('DOMContentLoaded', function () {
     console.log('Popup opened')
-    // Tab switching functionality
     const tabs = document.querySelectorAll('.tab')
     const tabContents = document.querySelectorAll('.tab-content')
 
@@ -106,21 +102,17 @@ window.addEventListener('DOMContentLoaded', function () {
         tab.addEventListener('click', () => {
             const tabId = tab.getAttribute('data-tab')
 
-            // Remove active class from all tabs and contents
             tabs.forEach(t => t.classList.remove('active'))
             tabContents.forEach(content => content.classList.remove('active'))
 
-            // Add active class to clicked tab and corresponding content
             tab.classList.add('active')
             document.getElementById(tabId).classList.add('active')
         })
     })
 
-    // Initial load of saved tweets
     displaySavedTweets()
 })
 
-// Add function to mark tweet as remembered
 function markTweetRemembered(tweetId) {
     chrome.storage.local.get({ savedTweets: {} }, function (result) {
         console.log('Current saved tweets:', result.savedTweets)
@@ -144,7 +136,6 @@ function markTweetRemembered(tweetId) {
     })
 }
 
-// Add new function to handle review time updates
 function updateReviewTime(tweetId, type) {
     chrome.storage.local.get({ savedTweets: {} }, function (result) {
         const savedTweets = result.savedTweets
@@ -170,7 +161,6 @@ function updateReviewTime(tweetId, type) {
     })
 }
 
-// Remove individual tweet
 function removeTweet(tweetId) {
     chrome.storage.local.get({ savedTweets: {} }, function (result) {
         const savedTweets = result.savedTweets
@@ -182,7 +172,6 @@ function removeTweet(tweetId) {
     })
 }
 
-// Clear all saved tweets
 document.getElementById('clearStorage').addEventListener('click', function () {
     if (confirm('Are you sure you want to clear all saved tweets?')) {
         chrome.storage.local.set({ savedTweets: {} }, function () {

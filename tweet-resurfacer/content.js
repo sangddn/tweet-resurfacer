@@ -18,7 +18,6 @@
      * Adds "Save Tweet" buttons to the timeline
      */
     function addSaveButtons() {
-        // More inclusive selectors for different timelines and threads
         const timelineSelectors = [
             '[data-testid="primaryColumn"]',                         // Generic timeline container
             'section[role="region"]',                                // Timeline section
@@ -42,7 +41,6 @@
             return;
         }
 
-        // Process existing tweets immediately
         debugLog("Processing existing tweets");
         const tweetSelectors = [
             'article[data-testid="tweet"]',
@@ -62,7 +60,6 @@
 
         existingTweets.forEach(tweet => processTweet(tweet));
 
-        // Set up observer for new tweets with error handling
         try {
             const observer = new MutationObserver(mutations => {
                 try {
@@ -70,7 +67,6 @@
                         mutation.addedNodes.forEach(node => {
                             if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
 
-                            // Try multiple selectors for tweets
                             if (node.matches('article[data-testid="tweet"]') ||
                                 node.matches('div[data-testid="tweet"]') ||
                                 node.matches('div[data-testid="cellInnerDiv"]') ||
@@ -78,7 +74,6 @@
                                 debugLog("Processing tweet node");
                                 processTweet(node);
                             } else {
-                                // Search for tweets within the added node
                                 const tweets = node.querySelectorAll(tweetSelectors.join(','));
                                 debugLog(`Found ${tweets.length} tweets in node`);
                                 tweets.forEach(tweet => processTweet(tweet));
@@ -104,20 +99,17 @@
 
     function processTweet(tweetElement) {
         try {
-            // Avoid duplicate buttons
             if (tweetElement.querySelector('.save-tweet-button')) {
                 debugLog('Skip: Tweet already has save button');
                 return;
             }
 
-            // Find a link that contains "/status/" – that is the tweet URL
             const link = tweetElement.querySelector('a[href*="/status/"]');
             if (!link) {
                 debugLog('Skip: No tweet URL found');
                 return;
             }
 
-            // Find the actions container - try multiple selectors
             const actionSelectors = [
                 'div[role="group"]',
                 'div[data-testid="tweet-actions"]',
@@ -141,16 +133,13 @@
             });
 
             const url = link.href;
-            // Extract tweet ID from the URL
             const match = url.match(/status\/(\d+)/);
             if (!match) return;
             const tweetId = match[1];
 
-            // Extract tweet content and metrics
             const tweetTextElement = tweetElement.querySelector('[data-testid="tweetText"]');
             const tweetText = tweetTextElement ? tweetTextElement.innerText : "";
 
-            // Get social metrics
             const metrics = {
                 likes: tweetElement.querySelector('[data-testid="like"]')?.textContent || "0",
                 retweets: tweetElement.querySelector('[data-testid="retweet"]')?.textContent || "0",
@@ -180,14 +169,11 @@
                 const handle = '@' + username;
                 const accountLink = `https://x.com/${username}`;
 
-                // Update profile picture selector to handle new Twitter/X UI
                 debugLog('Looking for profile picture...');
                 const avatarContainer = tweetElement.querySelector('div[data-testid="Tweet-User-Avatar"]');
                 debugLog('Avatar container found:', avatarContainer);
 
-                // Function to find profile image
                 const findProfileImage = () => {
-                    // Try multiple selectors to find the profile image
                     const profileImgEl =
                         // First try: direct img with profile_images in src
                         avatarContainer?.querySelector('img[src*="profile_images"]') ||
@@ -272,10 +258,8 @@
                     });
                 };
 
-                // Initial button state
                 updateButtonState();
 
-                // Assemble the button hierarchy
                 innerDiv.appendChild(textDiv);
                 btn.appendChild(innerDiv);
                 buttonContainer.appendChild(btn);
@@ -383,7 +367,6 @@
         }, 2.5 * ONE_MINUTE);
     }
 
-    // Modify saveTweet to include debug info
     function saveTweet(tweetData) {
         try {
             if (!chrome?.storage?.local) {
@@ -652,7 +635,6 @@
             e.preventDefault();
             markTweet(tweetData.id, true);
 
-            // Replace buttons with next review date
             const actionsDiv = article.querySelector('.actions');
             const nextReviewDate = new Date(Date.now() + ONE_DAY).toLocaleDateString();
             actionsDiv.innerHTML = `
@@ -660,7 +642,6 @@
             `;
         });
 
-        // Add remove button handler
         const removeBtn = article.querySelector('.remove-btn');
         removeBtn.addEventListener('click', function (e) {
             e.stopPropagation();
@@ -669,7 +650,6 @@
             article.remove();
         });
 
-        // Make the tweet clickable to open the original
         article.addEventListener('click', function (e) {
             if (!e.target.closest('button') && !e.target.closest('a')) {
                 window.open(tweetData.url, '_blank');
@@ -714,7 +694,6 @@
         });
     }
 
-    // Add these variables for tracking
     let usedPositions = new Set();
     let tweetQueue = [];
     let isProcessingQueue = false;
@@ -722,7 +701,6 @@
     let scrollDirection = 'down';
     let intersectionObserver;
 
-    // Replace updateReviewContainer with this new version
     function updateReviewContainer() {
         try {
             if (!chrome?.storage?.local) {
@@ -739,10 +717,8 @@
 
                     console.log('Found due tweets:', dueTweets.length);
 
-                    // Reset queue with new due tweets
                     tweetQueue = dueTweets;
 
-                    // Start processing if not already running
                     if (!isProcessingQueue) {
                         processNextTweet();
                     }
@@ -755,7 +731,6 @@
         }
     }
 
-    // Add new function to process tweet queue
     function processNextTweet() {
         if (tweetQueue.length === 0) {
             isProcessingQueue = false;
@@ -791,7 +766,6 @@
         setTimeout(processNextTweet, 500);
     }
 
-    // Add function to find optimal insertion point
     function findOptimalInsertionPoint() {
         const timeline = document.querySelector('[data-testid="primaryColumn"]');
         if (!timeline) return null;
@@ -800,7 +774,6 @@
             'article[data-testid="tweet"]:not([data-tweet-id])'
         ));
 
-        // Get viewport info
         const viewportHeight = window.innerHeight;
         const scrollBottom = window.scrollY + viewportHeight;
 
@@ -824,7 +797,6 @@
         return null;
     }
 
-    // Add helper function to check position spacing
     function isNearUsedPosition(position) {
         return Array.from(usedPositions).some(usedPos => {
             const gap = Math.abs(parseInt(usedPos) - position);
@@ -832,7 +804,6 @@
         });
     }
 
-    // Add scroll tracking
     function setupScrollTracking() {
         window.addEventListener('scroll', () => {
             const currentScroll = window.scrollY;
@@ -855,7 +826,6 @@
         }, { passive: true });
     }
 
-    // Add cleanup function
     function cleanupOldPositions() {
         const viewportTop = window.scrollY;
         document.querySelectorAll('[data-tweet-id]').forEach(tweet => {
@@ -868,7 +838,6 @@
         });
     }
 
-    // Add intersection observer setup
     function setupIntersectionObserver() {
         intersectionObserver = new IntersectionObserver(
             (entries) => {
@@ -896,20 +865,16 @@
         }
     }
 
-    // Initialize new functionality
     setupScrollTracking();
     setupIntersectionObserver();
 
-    // Modify interval to check more frequently but process more intelligently
     setInterval(updateReviewContainer, DEBUG_MODE ? 15000 : 60000);
 
-    // Run tests when extension loads
     if (DEBUG_MODE) {
         debugLog('Debug mode enabled - 1 day = 2 minutes');
         runTests();
     }
 
-    // Update the waitForTimeline function to be more persistent
     function waitForTimeline() {
         const timelineSelectors = [
             'div[aria-label="Timeline: Your Home Timeline"]',
@@ -935,7 +900,6 @@
         }
     }
 
-    // Also add a URL change observer to handle navigation between different Twitter pages
     let lastUrl = location.href;
     new MutationObserver(() => {
         const url = location.href;
